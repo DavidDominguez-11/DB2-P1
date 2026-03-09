@@ -133,6 +133,7 @@ with st.sidebar:
     seccion = st.radio("Navegación", [
         "🏠  Dashboard",
         "⚙️  Setup & Seeding",
+        "🧬  Estructura Embebida",
         "🍽️  Restaurantes",
         "👤  Usuarios",
         "📋  Órdenes",
@@ -297,6 +298,95 @@ elif seccion.startswith("⚙️"):
             cols_info.append({"Colección": col_name, "Documentos": "Error", "Índices": 0, "Nombres Idx": ""})
     st.dataframe(pd.DataFrame(cols_info), use_container_width=True)
 
+
+# ═════════════════════════════════════════════════════════════════════════════
+# 🧬 ESTRUCTURA EMBEBIDA (ANATOMÍA)
+# ═════════════════════════════════════════════════════════════════════════════
+elif seccion.startswith("🧬"):
+    st.title("🧬 Anatomía de Documentos Embebidos")
+    st.markdown("""
+    En este proyecto, seguimos el principio de **Denormalización Controlada**. 
+    Usamos **objetos embebidos (⬛)** para datos que pertenecen lógicamente a una entidad y **referencias (→)** para relaciones entre entidades independientes.
+    """)
+
+    tab1, tab2, tab3 = st.tabs(["🍽️ Restaurantes", "📋 Órdenes", "👤 Usuarios"])
+
+    with tab1:
+        st.subheader("Colección: `restaurantes`")
+        col_text, col_viz = st.columns([1, 1])
+        with col_text:
+            st.markdown("""
+            **Campos Embebidos:**
+            1.  **`ubicacion` (GeoJSON):** Indexado con `2dsphere` para búsquedas espaciales.
+            2.  **`horario` (Nested Object):** Almacena la apertura y cierre de cada día de la semana.
+            
+            **Ventaja:** En una sola lectura de disco obtenemos toda la información necesaria para mostrar el perfil del restaurante, incluyendo si está abierto y dónde está.
+            """)
+        with col_viz:
+            st.code("""
+Restaurante (Documento)
+├── ubicacion ⬛
+│   ├── type: "Point"
+│   └── coordinates: [lng, lat]
+└── horario ⬛
+    ├── lunes: { apertura, cierre }
+    ├── ...
+    └── domingo: { apertura, cierre }
+            """, language="text")
+        
+        st.divider()
+        st.markdown("🔍 **Ejemplo Real de `horario` y `ubicacion`:**")
+        res = db.restaurantes.find_one()
+        if res:
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.write("**`ubicacion`**")
+                st.json(res.get("ubicacion", {}))
+            with col_b:
+                st.write("**`horario`**")
+                st.json(res.get("horario", {}))
+
+    with tab2:
+        st.subheader("Colección: `ordenes`")
+        st.markdown("""
+        Esta es la colección más compleja. Utiliza el **Snapshot Pattern** para garantizar la integridad histórica.
+        """)
+        
+        col_text, col_viz = st.columns([1, 1])
+        with col_text:
+            st.markdown("""
+            **Estructuras clave:**
+            1.  **`items` (Array Embebido):** Copiamos el `nombre` y `precio_unitario` del menú. 
+                *¿Por qué?* Si el precio del menú sube mañana, esta orden debe mantener el precio original.
+            2.  **`direccion_entrega` (Objeto):** Copia de la dirección del usuario al momento de la compra.
+            """)
+        with col_viz:
+            st.code("""
+Orden (Documento)
+├── items [ ] ⬛ (Snapshot)
+│   └── { menu_item_id, nombre, precio_unitario, qty }
+└── direccion_entrega ⬛
+    └── { calle, zona, ciudad, coordinates }
+            """, language="text")
+
+        st.divider()
+        st.markdown("🔍 **Inspección de Snapshot en Orden:**")
+        ord_doc = db.ordenes.find_one()
+        if ord_doc:
+            st.json({"items_embebidos": ord_doc.get("items", []), "direccion": ord_doc.get("direccion_entrega", {})})
+
+    with tab3:
+        st.subheader("Colección: `usuarios`")
+        st.markdown("""
+        **`direccion_default` ⬛**: Guardada como objeto para agilizar el proceso de Checkout.
+        **`historial_pedidos` [ ] →**: Un array de referencias (ObjectIds) que apuntan a la colección `ordenes`.
+        """)
+        user_doc = db.usuarios.find_one()
+        if user_doc:
+            st.json({
+                "direccion_embebida": user_doc.get("direccion_default", {}),
+                "referencias_historial": [str(oid) for oid in user_doc.get("historial_pedidos", [])[:3]] + ["..."]
+            })
 
 # ═════════════════════════════════════════════════════════════════════════════
 # 🍽️ RESTAURANTES
