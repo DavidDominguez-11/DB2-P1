@@ -613,10 +613,19 @@ elif seccion.startswith("📋"):
                 st.markdown("**Selecciona items del menú:**")
                 items_pedido = []
                 for item in menu:
-                    col_a, col_b = st.columns([3, 1])
-                    with col_a:
+                    col_img, col_name, col_qty = st.columns([0.5, 3, 1])
+                    with col_img:
+                        if item.get("imagen_id"):
+                            img_bytes = recuperar_imagen(item["imagen_id"])
+                            if img_bytes:
+                                st.image(img_bytes, width=60)
+                            else:
+                                st.caption("🍽️")
+                        else:
+                            st.caption("🍽️")
+                    with col_name:
                         st.markdown(f"**{item['nombre']}** — Q{item['precio']:.2f}")
-                    with col_b:
+                    with col_qty:
                         qty = st.number_input(f"Qty", min_value=0, max_value=20,
                                                value=0, key=f"qty_{item['_id']}")
                     if qty > 0:
