@@ -653,7 +653,39 @@ elif seccion.startswith("📋"):
             try:
                 detalle = detalle_orden_completo(db, ObjectId(orden_id_str))
                 if detalle:
-                    st.json(_doc_to_display(detalle))
+                    # Métricas principales
+                    col1, col2, col3, col4 = st.columns(4)
+                    col1.metric("Estado", detalle.get("estado", "N/A").upper())
+                    col2.metric("Total", f"Q{detalle.get('total', 0):.22}")
+                    col3.metric("Usuario", detalle.get("usuario_nombre", "N/A"))
+                    col4.metric("Restaurante", detalle.get("restaurante_nombre", "N/A"))
+
+                    # Detalles adicionales
+                    st.markdown("---")
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        st.markdown(f"**Fecha Creación:** {detalle.get('fecha_creacion')}")
+                        st.markdown(f"**Usuario Email:** {detalle.get('usuario_email')}")
+                    with c2:
+                        st.markdown(f"**Ciudad:** {detalle.get('restaurante_ciudad')}")
+                        st.markdown(f"**Dirección Entrega:** {detalle.get('direccion_entrega', {}).get('calle', 'N/A')}, Zona {detalle.get('direccion_entrega', {}).get('zona', 'N/A')}")
+
+                    # Tabla de items
+                    st.markdown("### 🛒 Items del Pedido")
+                    items_df = pd.DataFrame(detalle.get("items", []))
+                    if not items_df.empty:
+                        # Renombrar columnas para mejor lectura
+                        items_df = items_df.rename(columns={
+                            "nombre": "Producto",
+                            "cantidad": "Cant.",
+                            "precio_unitario": "Precio Unit.",
+                            "subtotal": "Subtotal"
+                        })
+                        st.table(items_df[["Producto", "Cant.", "Precio Unit.", "Subtotal"]])
+                    
+                    # Mostrar JSON crudo opcionalmente en un expander
+                    with st.expander("Ver JSON crudo"):
+                        st.json(_doc_to_display(detalle))
                 else:
                     st.warning("Orden no encontrada.")
             except Exception as e:
