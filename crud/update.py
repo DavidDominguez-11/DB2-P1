@@ -54,17 +54,18 @@ def cambiar_estado_orden(db, orden_id: ObjectId, nuevo_estado: str) -> bool:
 # 2. update_many — actualizar precios con $mul
 # ──────────────────────────────────────────────────────────────────────────────
 
-def actualizar_precios_restaurante(db, restaurante_id: ObjectId,
-                                    factor: float) -> int:
+def actualizar_precios_restaurante(db, restaurante_id: ObjectId, factor: float) -> int:
     """
-    Aplica un factor multiplicador al precio de todos los items del restaurante.
-    Ejemplo: factor=1.10 sube precios 10%.
+    Multiplica el precio de todos los items de un restaurante ($mul).
     """
     result = db.menu_items.update_many(
-        {"restaurante_id": restaurante_id, "disponible": True},
-        {"$mul": {"precio": factor}}
+        {"restaurante_id": restaurante_id},
+        {
+            "$mul": {"precio": factor},
+            "$set": {"fecha_actualizacion": datetime.datetime.utcnow()}
+        }
     )
-    print(f"✅ Precios actualizados en {result.modified_count} items (×{factor})")
+    print(f"✅ Items del restaurante {restaurante_id} actualizados con factor {factor} ($mul)")
     return result.modified_count
 
 
@@ -80,7 +81,7 @@ def agregar_tag_resena(db, resena_id: ObjectId, tag: str) -> bool:
         {"_id": resena_id},
         {"$addToSet": {"tags": tag}}
     )
-    if result.matched_count:
+    if result.modified_count:
         print(f"✅ Tag '{tag}' agregado a reseña {resena_id} ($addToSet)")
         return True
     return False
@@ -93,12 +94,7 @@ def agregar_tag_resena(db, resena_id: ObjectId, tag: str) -> bool:
 def quitar_item_orden(db, orden_id: ObjectId, menu_item_id: ObjectId) -> bool:
     """
     Remueve un item del array items de la orden ($pull).
-    Solo aplicable en estado 'pendiente'.
     """
-    orden = db.ordenes.find_one({"_id": orden_id, "estado": "pendiente"})
-    if not orden:
-        raise ValueError("Solo se puede editar una orden en estado 'pendiente'.")
-
     result = db.ordenes.update_one(
         {"_id": orden_id},
         {
@@ -106,43 +102,38 @@ def quitar_item_orden(db, orden_id: ObjectId, menu_item_id: ObjectId) -> bool:
             "$set":  {"fecha_actualizacion": datetime.datetime.utcnow()}
         }
     )
-    print(f"✅ Item {menu_item_id} eliminado de orden {orden_id} ($pull)")
-    return result.modified_count > 0
+    if result.modified_count:
+        print(f"✅ Item {menu_item_id} eliminado de orden {orden_id} ($pull)")
+        return True
+    return False
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 5. update_many — $inc ventas_total (contexto cancelación)
 # ──────────────────────────────────────────────────────────────────────────────
 
-def revertir_ventas_total(db, items: list) -> int:
+def revertir_ventas_total(db, items_list: list) -> int:
     """
     Decrementa ventas_total para cada item ($inc negativo).
-    Usado por cancelar_orden (también implementado en transactions/orders.py).
     """
     count = 0
-    for item in items:
-        result = db.menu_items.update_many(
+    for item in items_list:
+        res = db.menu_items.update_one(
             {"_id": item["menu_item_id"]},
             {"$inc": {"ventas_total": -item["cantidad"]}}
         )
-        count += result.modified_count
+        count += res.modified_count
     print(f"✅ ventas_total revertidas en {count} items ($inc negativo)")
     return count
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 6. Demostración completa de operadores de array
+# 6. Demostración completa de operadores de array (10 pts)
 # ──────────────────────────────────────────────────────────────────────────────
 
-def demo_operadores_array(db) -> dict:
-    """
-    Demuestra TODOS los operadores de array definidos en Etapa 01, Sección 8.1.
-    $push, $pull, $addToSet, $pop, $elemMatch, $size, $inc
-    Todos se ejecutan realmente sobre la BD.
-    """
+def demo_push_pop(db):
+    """Demostración de $push y $pop."""
     resultados = {}
-
-    # ── $push — Agregar orden al historial del usuario ─────────────────────
     usuario = db.usuarios.find_one({"activo": True})
     if usuario:
         orden_ficticia = ObjectId()
@@ -153,11 +144,10 @@ def demo_operadores_array(db) -> dict:
         resultados["$push"] = {
             "descripcion": "Agregar orden al historial del usuario",
             "documento_id": str(usuario["_id"]),
-            "modified_count": res.modified_count
+            "modified_count": res.modified_count,
+            "valor_agregado": str(orden_ficticia)
         }
-        print(f"✅ $push — historial_pedidos actualizado: {res.modified_count} doc")
 
-        # ── $pop — Eliminar el último elemento del historial ─────────────────
         res_pop = db.usuarios.update_one(
             {"_id": usuario["_id"]},
             {"$pop": {"historial_pedidos": 1}}   # 1 = eliminar último
@@ -167,35 +157,40 @@ def demo_operadores_array(db) -> dict:
             "documento_id": str(usuario["_id"]),
             "modified_count": res_pop.modified_count
         }
-        print(f"✅ $pop — último elemento eliminado: {res_pop.modified_count} doc")
+    return resultados
 
-    # ── $addToSet — Agregar tag a reseña sin duplicados ──────────────────────
+def demo_addtoset_pull(db):
+    """Demostración de $addToSet y $pull."""
+    resultados = {}
     resena = db.resenas.find_one()
     if resena:
+        tag_demo = "demo_tag"
         res = db.resenas.update_one(
             {"_id": resena["_id"]},
-            {"$addToSet": {"tags": "demo_tag"}}
+            {"$addToSet": {"tags": tag_demo}}
         )
         resultados["$addToSet"] = {
             "descripcion": "Agregar tag único a reseña",
             "documento_id": str(resena["_id"]),
-            "modified_count": res.modified_count
+            "modified_count": res.modified_count,
+            "tag": tag_demo
         }
-        print(f"✅ $addToSet — tag agregado: {res.modified_count} doc")
 
-        # ── $pull — Remover el tag recién agregado ────────────────────────────
         res_pull = db.resenas.update_one(
             {"_id": resena["_id"]},
-            {"$pull": {"tags": "demo_tag"}}
+            {"$pull": {"tags": tag_demo}}
         )
         resultados["$pull"] = {
             "descripcion": "Remover tag de reseña",
             "documento_id": str(resena["_id"]),
-            "modified_count": res_pull.modified_count
+            "modified_count": res_pull.modified_count,
+            "tag": tag_demo
         }
-        print(f"✅ $pull — tag removido: {res_pull.modified_count} doc")
+    return resultados
 
-    # ── $elemMatch — Filtrar órdenes con item específico ────────────────────
+def demo_elemmatch(db):
+    """Demostración de $elemMatch."""
+    resultados = {}
     menu_item = db.menu_items.find_one()
     if menu_item:
         ordenes_con_item = list(db.ordenes.find(
@@ -205,21 +200,29 @@ def demo_operadores_array(db) -> dict:
         resultados["$elemMatch"] = {
             "descripcion": "Órdenes que contienen un item específico",
             "menu_item_id": str(menu_item["_id"]),
-            "count_encontradas": len(ordenes_con_item)
+            "count_encontradas": len(ordenes_con_item),
+            "ejemplos_ids": [str(o["_id"]) for o in ordenes_con_item]
         }
-        print(f"✅ $elemMatch — órdenes con item: {len(ordenes_con_item)}")
+    return resultados
 
-    # ── $size — Órdenes con exactamente 3 items ──────────────────────────────
-    ordenes_3_items = db.ordenes.count_documents(
-        {"items": {"$size": 3}}
-    )
+def demo_size(db):
+    """Demostración de $size."""
+    resultados = {}
+    counts = {}
+    for n in [1, 2, 3]:
+        c = db.ordenes.count_documents({"items": {"$size": n}})
+        counts[f"tamaño_{n}"] = c
+
     resultados["$size"] = {
-        "descripcion": "Órdenes con exactamente 3 artículos",
-        "count": ordenes_3_items
+        "descripcion": "Contar órdenes por número exacto de artículos",
+        "resultados": counts
     }
-    print(f"✅ $size — órdenes con 3 items: {ordenes_3_items}")
+    return resultados
 
-    # ── $inc — Incrementar ventas_total ──────────────────────────────────────
+def demo_inc(db):
+    """Demostración de $inc."""
+    resultados = {}
+    menu_item = db.menu_items.find_one()
     if menu_item:
         res_inc = db.menu_items.update_one(
             {"_id": menu_item["_id"]},
@@ -230,7 +233,19 @@ def demo_operadores_array(db) -> dict:
             "menu_item_id": str(menu_item["_id"]),
             "modified_count": res_inc.modified_count
         }
-        print(f"✅ $inc — ventas_total incrementado: {res_inc.modified_count} doc")
+    return resultados
+
+def demo_operadores_array(db):
+    """
+    Ejecuta una demostración real sobre la BD de:
+    $push, $pull, $addToSet, $pop, $elemMatch, $size, $inc
+    """
+    resultados = {}
+    resultados.update(demo_push_pop(db))
+    resultados.update(demo_addtoset_pull(db))
+    resultados.update(demo_elemmatch(db))
+    resultados.update(demo_size(db))
+    resultados.update(demo_inc(db))
 
     print("\n✅ Demo de operadores de array completada.")
     return resultados

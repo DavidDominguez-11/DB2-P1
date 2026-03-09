@@ -32,7 +32,8 @@ from crud.read import (historial_usuario_paginado, detalle_orden_completo,
                        consulta_ordenes_filtradas,
                        listar_restaurantes, listar_menu_restaurante, listar_usuarios)
 from crud.update import (cambiar_estado_orden, actualizar_precios_restaurante,
-                          agregar_tag_resena, quitar_item_orden, demo_operadores_array)
+                          agregar_tag_resena, quitar_item_orden, demo_operadores_array,
+                          demo_push_pop, demo_addtoset_pull, demo_elemmatch, demo_size, demo_inc)
 from crud.delete import eliminar_menu_item, eliminar_resenas_usuario, soft_delete_restaurante, eliminar_resena
 from transactions.orders import crear_orden, cancelar_orden
 from aggregations.pipelines import (ejecutar_top_restaurantes, ejecutar_top_platillos,
@@ -949,32 +950,68 @@ elif seccion.startswith("🔍"):
 elif seccion.startswith("🧩"):
     st.title("🧩 Operadores de Array")
     st.markdown("""
-    Demostración real de todos los operadores de array definidos en **Sección 8.1**:
-    `$push`, `$pull`, `$addToSet`, `$pop`, `$elemMatch`, `$size`, `$inc`
+    Pruebas reales de los operadores de array definidos en **Sección 8.1**.
+    Puedes ejecutarlos todos juntos o probar uno por uno para ver el impacto exacto en la base de datos.
     """)
 
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        st.subheader("🚀 Ejecución Rápida")
+        if st.button("▶️ Ejecutar Demo Completa", use_container_width=True):
+            with st.spinner("Ejecutando operadores..."):
+                try:
+                    resultados = demo_operadores_array(db)
+                    st.success("✅ Todos los operadores ejecutados correctamente.")
+                    for operador, info in resultados.items():
+                        with st.expander(f"Resultado {operador}"):
+                            st.json(info)
+                except Exception as e:
+                    st.error(f"❌ {e}")
+
+    with col2:
+        st.subheader("🧪 Pruebas Individuales")
+        op_seleccionado = st.selectbox("Selecciona un operador para probar:", [
+            "$push & $pop (Historial de Usuario)",
+            "$addToSet & $pull (Tags de Reseña)",
+            "$elemMatch (Filtro de Items en Órdenes)",
+            "$size (Filtro por Cantidad de Items)",
+            "$inc (Ventas Totales)"
+        ])
+
+        if st.button("🔬 Probar Seleccionado", use_container_width=True):
+            with st.spinner(f"Probando {op_seleccionado}..."):
+                try:
+                    resultado = {}
+                    if op_seleccionado.startswith("$push"):
+                        resultado = demo_push_pop(db)
+                    elif op_seleccionado.startswith("$addToSet"):
+                        resultado = demo_addtoset_pull(db)
+                    elif op_seleccionado.startswith("$elemMatch"):
+                        resultado = demo_elemmatch(db)
+                    elif op_seleccionado.startswith("$size"):
+                        resultado = demo_size(db)
+                    elif op_seleccionado.startswith("$inc"):
+                        resultado = demo_inc(db)
+
+                    st.success(f"✅ Prueba de {op_seleccionado.split(' ')[0]} completada.")
+                    st.json(resultado)
+                except Exception as e:
+                    st.error(f"❌ Error en la prueba: {e}")
+
+    st.divider()
+    st.markdown("### 📚 Detalle de Operadores")
     st.markdown("""
-    | Operador | Caso de uso en Parametric Grill Hub |
-    |----------|-------------------------------------|
-    | `$push`  | Agregar orden al historial del usuario |
-    | `$pull`  | Remover item de orden |
-    | `$addToSet` | Agregar tag a reseña sin duplicados |
-    | `$pop`   | Eliminar último item del historial |
-    | `$elemMatch` | Filtrar órdenes por item específico |
-    | `$size`  | Órdenes con exactamente N items |
-    | `$inc`   | Incrementar/decrementar ventas_total |
+    | Operador | Caso de uso en Parametric Grill Hub | Descripción |
+    |----------|-------------------------------------|-------------|
+    | `$push`  | `historial_pedidos` | Agrega un nuevo ID de orden al final del array del usuario. |
+    | `$pop`   | `historial_pedidos` | Elimina el último elemento del array (usado aquí para limpieza). |
+    | `$addToSet` | `tags` en reseñas | Agrega un tag solo si no existe ya en el array. |
+    | `$pull`  | `tags` o `items` | Elimina elementos específicos que coincidan con un criterio. |
+    | `$elemMatch` | Búsqueda en `items` | Filtra documentos que tienen al menos un elemento que cumple múltiples condiciones. |
+    | `$size`  | Cantidad de `items` | Filtra documentos donde el array tiene exactamente el tamaño especificado. |
+    | `$inc`   | `ventas_total` | Incrementa o decrementa valores numéricos (muy común con arrays de transacciones). |
     """)
-
-    if st.button("▶️ Ejecutar Demo Completa de Operadores de Array"):
-        with st.spinner("Ejecutando operadores..."):
-            try:
-                resultados = demo_operadores_array(db)
-                for operador, info in resultados.items():
-                    with st.expander(f"✅ {operador} — {info.get('descripcion','')}"):
-                        st.json(info)
-                st.success("✅ Todos los operadores ejecutados correctamente.")
-            except Exception as e:
-                st.error(f"❌ {e}")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
