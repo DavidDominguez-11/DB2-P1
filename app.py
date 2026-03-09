@@ -140,6 +140,7 @@ with st.sidebar:
         "🔍  Índices & explain()",
         "🧩  Operadores de Array",
         "🔎  Búsqueda & Geo",
+        "📈  MongoDB Atlas Charts"
     ])
 
     st.divider()
@@ -903,3 +904,43 @@ elif seccion.startswith("🔎"):
                     st.info(f"Sin restaurantes dentro de {radio}m.")
             except Exception as e:
                 st.error(f"❌ {e}")
+                
+# ═════════════════════════════════════════════════════════════════════════════
+# 📈 MONGO ATLAS CHARTS (EMBEDDED)
+# ═════════════════════════════════════════════════════════════════════════════
+elif seccion.startswith("📈"):
+    st.title("📈 MongoDB Atlas Charts")
+    st.markdown("Visualizaciones de negocio embebidas directamente desde **Atlas Charts**.")
+
+    # REEMPLAZA ESTOS LINKS CON TUS PROPIOS LINKS DE ATLAS
+    CHARTS = [
+        {
+            "titulo": "Estado de Órdenes (Tiempo Real)",
+            "url": "https://charts.mongodb.com/charts-project-0-sfijcmg/embed/charts?id=950876ef-ba7c-4bad-96a3-c33828008ea2&maxDataAge=14400&theme=dark&autoRefresh=true"
+        },
+        {
+            "titulo": "Ingresos Totales por Mes",
+            "url": "https://charts.mongodb.com/charts-project-0-sfijcmg/embed/charts?id=cc9e5453-e568-4353-a83d-d30360645c4b&maxDataAge=14400&theme=dark&autoRefresh=true"
+        },
+        {
+            "titulo": "Top 5 Restaurantes por Venta",
+            "url": "https://charts.mongodb.com/charts-project-0-sfijcmg/embed/charts?id=10aaeece-f591-4cc0-af5e-5d49e3262681&maxDataAge=14400&theme=dark&autoRefresh=true"
+        },
+        {
+            "titulo": "Distribucion de rating por tags",
+            "url": "https://charts.mongodb.com/charts-project-0-sfijcmg/embed/charts?id=ecb8a6f8-a921-4b43-a9e2-b994d0144f54&maxDataAge=14400&theme=dark&autoRefresh=true"
+        },
+        {
+            "titulo": "Preferencias por Categoría",
+            "url": "https://charts.mongodb.com/charts-project-0-sfijcmg/embed/charts?id=e2c9e7d8-fe83-47bb-a2b1-2e4ac72df721&maxDataAge=14400&theme=dark&autoRefresh=true"
+        },
+        {
+            "titulo": "Promedio de calificación por reseña",
+            "url": "https://charts.mongodb.com/charts-project-0-sfijcmg/embed/charts?id=0a154d9a-2859-4570-b8f7-aed6e9e3f43e&maxDataAge=14400&theme=dark&autoRefresh=true"
+        }
+    ]
+    for chart in CHARTS:
+        with st.container():
+            st.subheader(chart["titulo"])
+            # Embebemos el Iframe de MongoDB Charts
+            st.components.v1.iframe(chart["url"], height=400, scrolling=True)
