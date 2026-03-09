@@ -49,6 +49,17 @@ def eliminar_resenas_usuario(db, usuario_id: ObjectId) -> int:
     return result.deleted_count
 
 
+def eliminar_resena(db, resena_id: ObjectId) -> bool:
+    """
+    Elimina una reseña específica por su ID (delete_one).
+    """
+    result = db.resenas.delete_one({"_id": resena_id})
+    if result.deleted_count:
+        print(f"🗑️  Reseña {resena_id} eliminada.")
+        return True
+    return False
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # 3. Soft delete — restaurante (activo=False)
 # ──────────────────────────────────────────────────────────────────────────────

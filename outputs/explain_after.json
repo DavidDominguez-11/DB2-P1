@@ -51,14 +51,14 @@
   "executionStats": {
     "executionSuccess": true,
     "nReturned": 2522,
-    "executionTimeMillis": 4,
+    "executionTimeMillis": 5,
     "totalKeysExamined": 2522,
     "totalDocsExamined": 2522,
     "executionStages": {
       "isCached": false,
       "stage": "FETCH",
       "nReturned": 2522,
-      "executionTimeMillisEstimate": 5,
+      "executionTimeMillisEstimate": 4,
       "works": 2523,
       "advanced": 2522,
       "needTime": 0,
@@ -71,7 +71,7 @@
       "inputStage": {
         "stage": "IXSCAN",
         "nReturned": 2522,
-        "executionTimeMillisEstimate": 0,
+        "executionTimeMillisEstimate": 1,
         "works": 2523,
         "advanced": 2522,
         "needTime": 0,
@@ -145,16 +145,16 @@
   "ok": 1.0,
   "$clusterTime": {
     "clusterTime": {
-      "t": 1773013429,
-      "i": 5
+      "t": 1773027139,
+      "i": 20
     },
     "signature": {
-      "hash": "3d86934bfb3ea22eceaa019cfb46c389e2306ee8",
+      "hash": "aff46d6b5e0ef589a98ec59ef7322e0a9dfe78f5",
       "keyId": 7563774911081086991
     }
   },
   "operationTime": {
-    "t": 1773013429,
-    "i": 5
+    "t": 1773027139,
+    "i": 20
   }
 }

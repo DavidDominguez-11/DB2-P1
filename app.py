@@ -33,7 +33,7 @@ from crud.read import (historial_usuario_paginado, detalle_orden_completo,
                        listar_restaurantes, listar_menu_restaurante, listar_usuarios)
 from crud.update import (cambiar_estado_orden, actualizar_precios_restaurante,
                           agregar_tag_resena, quitar_item_orden, demo_operadores_array)
-from crud.delete import eliminar_menu_item, eliminar_resenas_usuario, soft_delete_restaurante
+from crud.delete import eliminar_menu_item, eliminar_resenas_usuario, soft_delete_restaurante, eliminar_resena
 from transactions.orders import crear_orden, cancelar_orden
 from aggregations.pipelines import (ejecutar_top_restaurantes, ejecutar_top_platillos,
                                      ejecutar_ingresos_mensuales, agregaciones_simples,
@@ -576,24 +576,37 @@ elif seccion.startswith("📋"):
 # ═════════════════════════════════════════════════════════════════════════════
 elif seccion.startswith("⭐"):
     st.title("⭐ Gestión de Reseñas")
-    tab1, tab2, tab3 = st.tabs(["📋 Listar", "➕ Crear", "🏷️ Agregar Tag"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 Listar", "➕ Crear", "🏷️ Agregar Tag", "🗑️ Eliminar"])
 
     with tab1:
-        restaurantes = listar_restaurantes(db)
-        if restaurantes:
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            restaurantes = listar_restaurantes(db)
             opts = {"(todos)": None} | {r["nombre"]: r["_id"] for r in restaurantes}
             sel  = st.selectbox("Filtrar por restaurante:", list(opts.keys()))
-            filtro = {"restaurante_id": opts[sel]} if opts[sel] else {}
-            resenas = list(db.resenas.find(filtro).sort("fecha", -1).limit(50))
-            if resenas:
-                rows = [{"ID": str(r["_id"]), "Calificación": r.get("calificacion"),
-                         "Comentario": r.get("comentario","")[:60]+"...",
-                         "Tags": ", ".join(r.get("tags",[])),
-                         "Fecha": r.get("fecha","").strftime("%Y-%m-%d") if r.get("fecha") else ""}
-                        for r in resenas]
-                st.dataframe(pd.DataFrame(rows), use_container_width=True)
-            else:
-                st.info("Sin reseñas.")
+        with col2:
+            res_id_search = st.text_input("🔍 Buscar por ID de Reseña:")
+
+        filtro = {}
+        if res_id_search:
+            try:
+                filtro = {"_id": ObjectId(res_id_search.strip())}
+            except:
+                st.error("ID no válido")
+                filtro = {"_id": None}
+        elif opts[sel]:
+            filtro = {"restaurante_id": opts[sel]}
+
+        resenas = list(db.resenas.find(filtro).sort("fecha", -1).limit(50))
+        if resenas:
+            rows = [{"ID": str(r["_id"]), "Calificación": r.get("calificacion"),
+                     "Comentario": r.get("comentario","")[:60]+"...",
+                     "Tags": ", ".join(r.get("tags",[])),
+                     "Fecha": r.get("fecha","").strftime("%Y-%m-%d") if r.get("fecha") else ""}
+                    for r in resenas]
+            st.dataframe(pd.DataFrame(rows), use_container_width=True)
+        else:
+            st.info("No se encontraron reseñas.")
 
     with tab2:
         st.subheader("Nueva Reseña")
@@ -634,6 +647,18 @@ elif seccion.startswith("⭐"):
             try:
                 agregar_tag_resena(db, ObjectId(resena_id_str), nuevo_tag)
                 st.success(f"✅ Tag '{nuevo_tag}' agregado ($addToSet — sin duplicados).")
+            except Exception as e:
+                st.error(f"❌ {e}")
+
+    with tab4:
+        st.subheader("Eliminar Reseña Individual (delete_one)")
+        res_del_id = st.text_input("ID de Reseña a eliminar:")
+        if st.button("🗑️ Eliminar Reseña") and res_del_id:
+            try:
+                if eliminar_resena(db, ObjectId(res_del_id)):
+                    st.success(f"✅ Reseña {res_del_id} eliminada correctamente.")
+                else:
+                    st.warning("No se encontró la reseña.")
             except Exception as e:
                 st.error(f"❌ {e}")
 

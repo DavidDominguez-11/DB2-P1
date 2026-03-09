@@ -46,13 +46,13 @@
       "isCached": false,
       "stage": "SORT",
       "nReturned": 2522,
-      "executionTimeMillisEstimate": 38,
+      "executionTimeMillisEstimate": 35,
       "works": 52526,
       "advanced": 2522,
       "needTime": 50003,
       "needYield": 0,
-      "saveState": 2,
-      "restoreState": 2,
+      "saveState": 3,
+      "restoreState": 3,
       "isEOF": 1,
       "sortPattern": {
         "fecha_creacion": -1
@@ -71,13 +71,13 @@
           }
         },
         "nReturned": 2522,
-        "executionTimeMillisEstimate": 34,
+        "executionTimeMillisEstimate": 28,
         "works": 50003,
         "advanced": 2522,
         "needTime": 47480,
         "needYield": 0,
-        "saveState": 2,
-        "restoreState": 2,
+        "saveState": 3,
+        "restoreState": 3,
         "isEOF": 1,
         "direction": "forward",
         "docsExamined": 50002
@@ -119,16 +119,16 @@
   "ok": 1.0,
   "$clusterTime": {
     "clusterTime": {
-      "t": 1773013429,
-      "i": 4
+      "t": 1773027139,
+      "i": 18
     },
     "signature": {
-      "hash": "3d86934bfb3ea22eceaa019cfb46c389e2306ee8",
+      "hash": "aff46d6b5e0ef589a98ec59ef7322e0a9dfe78f5",
       "keyId": 7563774911081086991
     }
   },
   "operationTime": {
-    "t": 1773013429,
-    "i": 4
+    "t": 1773027139,
+    "i": 18
   }
 }
