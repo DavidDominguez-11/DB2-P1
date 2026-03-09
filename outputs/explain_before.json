@@ -1,0 +1,134 @@
+{
+  "explainVersion": "1",
+  "queryPlanner": {
+    "namespace": "parametric_grill_hub.ordenes",
+    "parsedQuery": {
+      "usuario_id": {
+        "$eq": "69ae06351714e3e192ed1666"
+      }
+    },
+    "indexFilterSet": false,
+    "queryHash": "392149D2",
+    "planCacheShapeHash": "392149D2",
+    "planCacheKey": "F1110EEF",
+    "optimizationTimeMillis": 0,
+    "maxIndexedOrSolutionsReached": false,
+    "maxIndexedAndSolutionsReached": false,
+    "maxScansToExplodeReached": false,
+    "prunedSimilarIndexes": false,
+    "winningPlan": {
+      "isCached": false,
+      "stage": "SORT",
+      "sortPattern": {
+        "fecha_creacion": -1
+      },
+      "memLimit": 33554432,
+      "type": "simple",
+      "inputStage": {
+        "stage": "COLLSCAN",
+        "filter": {
+          "usuario_id": {
+            "$eq": "69ae06351714e3e192ed1666"
+          }
+        },
+        "direction": "forward"
+      }
+    },
+    "rejectedPlans": []
+  },
+  "executionStats": {
+    "executionSuccess": true,
+    "nReturned": 2522,
+    "executionTimeMillis": 38,
+    "totalKeysExamined": 0,
+    "totalDocsExamined": 50002,
+    "executionStages": {
+      "isCached": false,
+      "stage": "SORT",
+      "nReturned": 2522,
+      "executionTimeMillisEstimate": 38,
+      "works": 52526,
+      "advanced": 2522,
+      "needTime": 50003,
+      "needYield": 0,
+      "saveState": 2,
+      "restoreState": 2,
+      "isEOF": 1,
+      "sortPattern": {
+        "fecha_creacion": -1
+      },
+      "memLimit": 33554432,
+      "type": "simple",
+      "totalDataSizeSorted": 1788655,
+      "usedDisk": false,
+      "spills": 0,
+      "spilledDataStorageSize": 0,
+      "inputStage": {
+        "stage": "COLLSCAN",
+        "filter": {
+          "usuario_id": {
+            "$eq": "69ae06351714e3e192ed1666"
+          }
+        },
+        "nReturned": 2522,
+        "executionTimeMillisEstimate": 34,
+        "works": 50003,
+        "advanced": 2522,
+        "needTime": 47480,
+        "needYield": 0,
+        "saveState": 2,
+        "restoreState": 2,
+        "isEOF": 1,
+        "direction": "forward",
+        "docsExamined": 50002
+      }
+    }
+  },
+  "queryShapeHash": "E5371CFAFC7516D366B43C2C36D5E74E763C07B19E49D0E5F8EE17CE410E42FE",
+  "command": {
+    "find": "ordenes",
+    "filter": {
+      "usuario_id": "69ae06351714e3e192ed1666"
+    },
+    "sort": {
+      "fecha_creacion": -1
+    },
+    "hint": {
+      "$natural": 1
+    },
+    "$db": "parametric_grill_hub"
+  },
+  "serverInfo": {
+    "host": "ac-hc8m5r0-shard-00-02.aijy2kj.mongodb.net",
+    "port": 27017,
+    "version": "8.0.20",
+    "gitVersion": "28927c60881a488fcbc5fd4d925b410f33258827"
+  },
+  "serverParameters": {
+    "internalQueryFacetBufferSizeBytes": 104857600,
+    "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+    "internalLookupStageIntermediateDocumentMaxSizeBytes": 16793600,
+    "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+    "internalQueryMaxBlockingSortMemoryUsageBytes": 33554432,
+    "internalQueryProhibitBlockingMergeOnMongoS": 0,
+    "internalQueryMaxAddToSetBytes": 104857600,
+    "internalDocumentSourceSetWindowFieldsMaxMemoryBytes": 104857600,
+    "internalQueryFrameworkControl": "trySbeRestricted",
+    "internalQueryPlannerIgnoreIndexWithCollationForRegex": 1
+  },
+  "ok": 1.0,
+  "$clusterTime": {
+    "clusterTime": {
+      "t": 1773013429,
+      "i": 4
+    },
+    "signature": {
+      "hash": "3d86934bfb3ea22eceaa019cfb46c389e2306ee8",
+      "keyId": 7563774911081086991
+    }
+  },
+  "operationTime": {
+    "t": 1773013429,
+    "i": 4
+  }
+}
