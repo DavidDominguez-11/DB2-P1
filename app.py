@@ -859,6 +859,15 @@ elif seccion.startswith("📊"):
 
     with tab2:
         st.subheader("Platillos Más Vendidos del Mes")
+        st.code("""pipeline = [
+  { '$match': { 'estado': 'entregado', 'fecha_creacion': { '$gte': inicio, '$lt': fin } } },
+  { '$unwind': '$items' },
+  { '$group': { '_id': '$items.menu_item_id', 'vendidos': { '$sum': '$items.cantidad' }, ... } },
+  { '$sort': { 'vendidos': -1 } }, { '$limit': 5 },
+  { '$lookup': { 'from': 'menu_items', ... } }, { '$unwind': '$menu' },
+  { '$lookup': { 'from': 'restaurantes', ... } }, { '$unwind': '$rest' },
+  { '$project': { 'platillo': '$menu.nombre', 'restaurante': '$rest.nombre', 'total_vendido': '$vendidos' } }
+]""", language="python")
         col1, col2 = st.columns(2)
         with col1:
             año = st.number_input("Año:", min_value=2024, max_value=2026, value=2024)
@@ -880,6 +889,17 @@ elif seccion.startswith("📊"):
 
     with tab3:
         st.subheader("Ingresos Mensuales por Restaurante")
+        st.code("""pipeline = [
+  { '$match': { 'estado': 'entregado' } },
+  { '$group': {
+      '_id': { 'rest_id': '$restaurante_id', 'anio': { '$year': '$fecha_creacion' }, 'mes': { '$month': '$fecha_creacion' } },
+      'total_mes': { '$sum': '$total' },
+      'ticket_promedio': { '$avg': '$total' }
+  }},
+  { '$sort': { '_id.anio': -1, '_id.mes': -1, 'total_mes': -1 } },
+  { '$lookup': { 'from': 'restaurantes', ... } }, { '$unwind': '$r' },
+  { '$project': { 'restaurante': '$r.nombre', 'periodo': { '$concat': [...] }, 'total': '$total_mes' } }
+]""", language="python")
         if st.button("Ejecutar Pipeline Ingresos"):
             try:
                 from pymongo import ReadPreference
@@ -894,6 +914,11 @@ elif seccion.startswith("📊"):
 
     with tab4:
         st.subheader("Agregaciones Simples (Sección 5.4)")
+        st.code("""# Comandos directos y optimizados:
+db.ordenes.count_documents({'estado': 'pendiente'})
+db.menu_items.distinct('categorias')
+db.resenas.estimated_document_count()
+db.ordenes.aggregate([{ '$match': {'estado': 'entregado'} }, { '$count': 'total' }])""", language="python")
         if st.button("Ejecutar Agregaciones Simples"):
             try:
                 simples = agregaciones_simples(db)
