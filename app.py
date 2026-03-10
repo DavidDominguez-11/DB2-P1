@@ -493,6 +493,25 @@ elif seccion.startswith("🍽️"):
                 n = actualizar_precios_restaurante(db, opts[sel], factor)
                 st.success(f"{n} items actualizados con factor {factor}")
 
+        st.divider()
+        st.subheader("Health Patch: Etiquetado Masivo")
+        st.markdown("""
+        Agrega un tag a todos los items del menú que coincidan con un texto (usa `$regex` + `$addToSet`).
+        """)
+        col_t1, col_t2 = st.columns(2)
+        with col_t1:
+            termino = st.text_input("Término a buscar (regex):", "ensalada")
+        with col_t2:
+            tag_nuevo = st.text_input("Tag a agregar:", "Sin Gluten")
+        
+        if st.button("Ejecutar Health Patch"):
+            if termino and tag_nuevo:
+                from crud.update import etiquetado_masivo_items
+                n = etiquetado_masivo_items(db, termino, tag_nuevo)
+                st.success(f"¡Patch aplicado! {n} items actualizados con el tag '{tag_nuevo}'.")
+            else:
+                st.warning("Ingresa un término y un tag.")
+
     with tab4:
         st.subheader("Soft Delete de Restaurante")
         restaurantes = listar_restaurantes(db, filtro_estado="todos")

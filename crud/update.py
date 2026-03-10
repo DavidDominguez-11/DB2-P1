@@ -69,6 +69,22 @@ def actualizar_precios_restaurante(db, restaurante_id: ObjectId, factor: float) 
     return result.modified_count
 
 
+def etiquetado_masivo_items(db, termino_busqueda: str, nuevo_tag: str) -> int:
+    """
+    Agrega un tag masivamente a todos los items cuyo nombre coincida con un regex ($addToSet).
+    Ejemplo: 'ensalada' -> 'Sin Gluten'
+    """
+    filtro = {"nombre": {"$regex": termino_busqueda, "$options": "i"}}
+    update = {
+        "$addToSet": {"categorias": nuevo_tag},
+        "$set": {"fecha_actualizacion": datetime.datetime.utcnow()}
+    }
+    
+    result = db.menu_items.update_many(filtro, update)
+    print(f"✅ Etiquetado masivo: '{termino_busqueda}' -> '{nuevo_tag}' ({result.modified_count} items)")
+    return result.modified_count
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # 3. update_one — $addToSet tags en reseña (sin duplicados)
 # ──────────────────────────────────────────────────────────────────────────────
