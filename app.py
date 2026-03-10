@@ -164,7 +164,7 @@ with st.sidebar:
 # Guard: sin conexión
 # ─────────────────────────────────────────────────────────────────────────────
 if db is None:
-    st.error("❌ No hay conexión a MongoDB. Configura MONGO_URI en tu archivo .env")
+    st.error("No hay conexión a MongoDB. Configura MONGO_URI en tu archivo .env")
     st.code('MONGO_URI=mongodb://localhost:27017/\nDB_NAME=parametric_grill_hub', language="bash")
     st.stop()
 
@@ -439,7 +439,7 @@ elif seccion.startswith("🍽️"):
             lat         = st.number_input("Latitud *",  value=14.6407,  format="%.4f")
             direccion   = st.text_input("Dirección")
             imagen_file = st.file_uploader("Imagen del restaurante (GridFS)", type=["jpg","jpeg","png"])
-            submitted   = st.form_submit_button("✅ Crear Restaurante")
+            submitted   = st.form_submit_button("Crear Restaurante")
 
         if submitted:
             if not nombre or not categorias:
@@ -463,9 +463,9 @@ elif seccion.startswith("🍽️"):
                         "activo":     True,
                     }, imagen_bytes=imagen_bytes,
                        imagen_filename=imagen_file.name if imagen_file else "imagen.jpg")
-                    st.success(f"✅ Restaurante creado: {rid}")
+                    st.success(f"Restaurante creado: {rid}")
                 except Exception as e:
-                    st.error(f"❌ {e}")
+                    st.error(f"{e}")
 
     with tab3:
         st.subheader("Actualizar Precios del Menú")
@@ -475,9 +475,9 @@ elif seccion.startswith("🍽️"):
             sel  = st.selectbox("Restaurante:", list(opts.keys()))
             factor = st.slider("Factor de precio ($mul):", 0.5, 2.0, 1.10, 0.05)
             st.info(f"Nuevos precios = precio actual × {factor:.2f}")
-            if st.button("💰 Actualizar Precios"):
+            if st.button("Actualizar Precios"):
                 n = actualizar_precios_restaurante(db, opts[sel], factor)
-                st.success(f"✅ {n} items actualizados con factor {factor}")
+                st.success(f"{n} items actualizados con factor {factor}")
 
     with tab4:
         st.subheader("Soft Delete de Restaurante")
@@ -488,18 +488,18 @@ elif seccion.startswith("🍽️"):
             sel = st.selectbox("Restaurante:", list(opts.keys()))
             col_a, col_b = st.columns(2)
             with col_a:
-                if st.button("🔒 Desactivar (Soft Delete)", use_container_width=True):
+                if st.button("Desactivar (Soft Delete)", use_container_width=True):
                     if soft_delete_restaurante(db, opts[sel]):
-                        st.success(" Restaurante desactivado.")
+                        st.success("Restaurante desactivado.")
             with col_b:
                 from crud.delete import restaurar_restaurante
-                if st.button("🔓 Reactivar", use_container_width=True):
+                if st.button("Reactivar", use_container_width=True):
                     if restaurar_restaurante(db, opts[sel]):
-                        st.success(" Restaurante reactivado.")
+                        st.success("Restaurante reactivado.")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# 👤 USUARIOS
+# USUARIOS
 # ═════════════════════════════════════════════════════════════════════════════
 elif seccion.startswith("👤"):
     st.title("Gestión de Usuarios")
@@ -525,7 +525,7 @@ elif seccion.startswith("👤"):
             telefono = st.text_input("Teléfono")
             calle    = st.text_input("Calle")
             zona     = st.text_input("Zona", "1")
-            submitted = st.form_submit_button("✅ Crear Usuario")
+            submitted = st.form_submit_button("Crear Usuario")
 
         if submitted:
             if not nombre or not email:
@@ -541,12 +541,13 @@ elif seccion.startswith("👤"):
                     }
                 })
                 if uid:
-                    st.success(f"✅ Usuario creado: {uid}")
+                    st.success(f"Usuario creado: {uid}")
                 else:
-                    st.error("❌ El email ya está registrado (DuplicateKeyError).")
+                    st.error("El email ya está registrado (DuplicateKeyError).")
 
     with tab3:
         st.subheader("Historial de Órdenes Paginado")
+        usuarios = listar_usuarios(db)
         usuarios = listar_usuarios(db, limite=50)
         if usuarios:
             opts = {f"{u.get('nombre','')} {u.get('apellido','')} ({u.get('email','')})": u["_id"]
@@ -555,7 +556,7 @@ elif seccion.startswith("👤"):
             pagina   = st.number_input("Página", min_value=1, value=1)
             por_pag  = st.selectbox("Por página:", [5, 10, 20, 50], index=1)
 
-            if st.button("🔍 Ver Historial"):
+            if st.button("Ver Historial"):
                 historial = historial_usuario_paginado(db, opts[sel], pagina, por_pag)
                 st.metric("Total órdenes", historial["total"])
                 st.metric("Páginas",       historial["paginas"])
@@ -621,9 +622,9 @@ elif seccion.startswith("📋"):
                             if img_bytes:
                                 st.image(img_bytes, width=60)
                             else:
-                                st.caption("🍽️")
+                                st.caption("Sin imagen")
                         else:
-                            st.caption("🍽️")
+                            st.caption("Sin imagen")
                     with col_name:
                         st.markdown(f"**{item['nombre']}** — Q{item['precio']:.2f}")
                     with col_qty:
@@ -632,16 +633,16 @@ elif seccion.startswith("📋"):
                     if qty > 0:
                         items_pedido.append({"menu_item_id": item["_id"], "cantidad": qty})
 
-                if st.button("🛒 Crear Orden (Transacción)"):
+                if st.button("Crear Orden (Transacción)"):
                     if not items_pedido:
                         st.warning("Selecciona al menos 1 item.")
                     else:
                         try:
                             oid = crear_orden(db, usr_opts[sel_usr], rst_opts[sel_rst], items_pedido)
-                            st.success(f"✅ Orden creada exitosamente: {oid}")
+                            st.success(f"Orden creada exitosamente: {oid}")
                             st.json({"orden_id": str(oid)})
                         except Exception as e:
-                            st.error(f"❌ Transacción abortada: {e}")
+                            st.error(f"Transacción abortada: {e}")
             else:
                 st.info("Este restaurante no tiene items en el menú.")
 
@@ -649,7 +650,7 @@ elif seccion.startswith("📋"):
         st.subheader("Detalle Completo de Orden")
         st.markdown("Lookup: ordenes → usuarios → restaurantes → menu_items")
         orden_id_str = st.text_input("ID de Orden:")
-        if st.button("🔍 Ver Detalle") and orden_id_str:
+        if st.button("Ver Detalle") and orden_id_str:
             try:
                 detalle = detalle_orden_completo(db, ObjectId(orden_id_str))
                 if detalle:
@@ -671,7 +672,7 @@ elif seccion.startswith("📋"):
                         st.markdown(f"**Dirección Entrega:** {detalle.get('direccion_entrega', {}).get('calle', 'N/A')}, Zona {detalle.get('direccion_entrega', {}).get('zona', 'N/A')}")
 
                     # Tabla de items
-                    st.markdown("### 🛒 Items del Pedido")
+                    st.markdown("### Items del Pedido")
                     items_df = pd.DataFrame(detalle.get("items", []))
                     if not items_df.empty:
                         # Renombrar columnas para mejor lectura
@@ -689,18 +690,18 @@ elif seccion.startswith("📋"):
                 else:
                     st.warning("Orden no encontrada.")
             except Exception as e:
-                st.error(f"❌ {e}")
+                st.error(f"{e}")
 
     with tab4:
         st.subheader("Cancelar Orden — Transacción Multi-Documento")
         st.info("Solo se puede cancelar en estado 'pendiente' o 'confirmado'.")
         orden_id_str = st.text_input("ID de Orden a cancelar:")
-        if st.button("❌ Cancelar Orden (Transacción)") and orden_id_str:
+        if st.button("Cancelar Orden (Transacción)") and orden_id_str:
             try:
                 cancelar_orden(db, ObjectId(orden_id_str))
-                st.success(" Orden cancelada y ventas_total revertidas.")
+                st.success("Orden cancelada y ventas_total revertidas.")
             except Exception as e:
-                st.error(f"❌ {e}")
+                st.error(f"{e}")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -717,7 +718,7 @@ elif seccion.startswith("⭐"):
             opts = {"(todos)": None} | {r["nombre"]: r["_id"] for r in restaurantes}
             sel  = st.selectbox("Filtrar por restaurante:", list(opts.keys()))
         with col2:
-            res_id_search = st.text_input("🔍 Buscar por ID de Reseña:")
+            res_id_search = st.text_input("Buscar por ID de Reseña:")
 
         filtro = {}
         if res_id_search:
@@ -753,7 +754,7 @@ elif seccion.startswith("⭐"):
                 calif     = st.slider("Calificación:", 1, 5, 4)
                 comentario = st.text_area("Comentario (mín. 5 caracteres):")
                 tags_str  = st.text_input("Tags (separados por coma):", "excelente_servicio")
-                submitted = st.form_submit_button("⭐ Crear Reseña")
+                submitted = st.form_submit_button("Crear Reseña")
 
             if submitted:
                 if len(comentario) < 5:
@@ -767,32 +768,32 @@ elif seccion.startswith("⭐"):
                             "comentario":     comentario,
                             "tags":           [t.strip() for t in tags_str.split(",") if t.strip()]
                         })
-                        st.success(f"✅ Reseña creada: {rid}")
+                        st.success(f"Reseña creada: {rid}")
                     except Exception as e:
-                        st.error(f"❌ {e}")
+                        st.error(f"{e}")
 
     with tab3:
         st.subheader("Agregar Tag a Reseña ($addToSet)")
         resena_id_str = st.text_input("ID de Reseña:")
         nuevo_tag     = st.text_input("Nuevo tag:")
-        if st.button("🏷️ Agregar Tag") and resena_id_str and nuevo_tag:
+        if st.button("Agregar Tag") and resena_id_str and nuevo_tag:
             try:
                 agregar_tag_resena(db, ObjectId(resena_id_str), nuevo_tag)
-                st.success(f"✅ Tag '{nuevo_tag}' agregado ($addToSet — sin duplicados).")
+                st.success(f"Tag '{nuevo_tag}' agregado ($addToSet — sin duplicados).")
             except Exception as e:
-                st.error(f"❌ {e}")
+                st.error(f"{e}")
 
     with tab4:
         st.subheader("Eliminar Reseña Individual (delete_one)")
         res_del_id = st.text_input("ID de Reseña a eliminar:")
-        if st.button("🗑️ Eliminar Reseña") and res_del_id:
+        if st.button("Eliminar Reseña") and res_del_id:
             try:
                 if eliminar_resena(db, ObjectId(res_del_id)):
-                    st.success(f"✅ Reseña {res_del_id} eliminada correctamente.")
+                    st.success(f"Reseña {res_del_id} eliminada correctamente.")
                 else:
                     st.warning("No se encontró la reseña.")
             except Exception as e:
-                st.error(f"❌ {e}")
+                st.error(f"{e}")
 
         st.divider()
         st.subheader("Eliminar Reseñas de Usuario (delete_many)")
@@ -800,23 +801,23 @@ elif seccion.startswith("⭐"):
         if usuarios:
             usr_opts = {f"{u.get('nombre','')} {u.get('apellido','')} ({u.get('email','')})": u["_id"] for u in usuarios}
             sel_del  = st.selectbox("Usuario:", list(usr_opts.keys()), key="del_usr")
-            if st.button("🗑️ Eliminar todas sus reseñas"):
+            if st.button("Eliminar todas sus reseñas"):
                 n = eliminar_resenas_usuario(db, usr_opts[sel_del])
-                st.success(f"✅ {n} reseñas eliminadas.")
+                st.success(f"{n} reseñas eliminadas.")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
 # 📊 AGGREGATION PIPELINES
 # ═════════════════════════════════════════════════════════════════════════════
 elif seccion.startswith("📊"):
-    st.title("📊 Aggregation Pipelines")
+    st.title("Aggregation Pipelines")
     st.markdown("**readPreference: secondaryPreferred** para reportes")
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "🏆 Top 10 Restaurantes",
-        "🍕 Platillos del Mes",
-        "💰 Ingresos Mensuales",
-        "🔢 Agregaciones Simples"
+        "Top 10 Restaurantes",
+        "Platillos del Mes",
+        "Ingresos Mensuales",
+        "Agregaciones Simples"
     ])
 
     with tab1:
@@ -828,7 +829,7 @@ elif seccion.startswith("📊"):
   { '$lookup': { 'from': 'restaurantes', ... } }, { '$unwind': '$restaurante' },
   { '$project': { 'nombre': ..., 'promedio': { '$round': ['$promedio', 2] }, ... } }
 ]""", language="python")
-        if st.button("▶️ Ejecutar Pipeline Top Restaurantes"):
+        if st.button("Ejecutar Pipeline Top Restaurantes"):
             try:
                 from pymongo import ReadPreference
                 resultado = ejecutar_top_restaurantes(db, ReadPreference.SECONDARY_PREFERRED)
@@ -840,7 +841,7 @@ elif seccion.startswith("📊"):
                 else:
                     st.info("Sin datos de reseñas suficientes.")
             except Exception as e:
-                st.error(f"❌ {e}")
+                st.error(f"{e}")
 
     with tab2:
         st.subheader("Platillos Más Vendidos del Mes")
@@ -850,7 +851,7 @@ elif seccion.startswith("📊"):
         with col2:
             mes = st.number_input("Mes:", min_value=1, max_value=12, value=1)
 
-        if st.button("▶️ Ejecutar Pipeline Platillos"):
+        if st.button("Ejecutar Pipeline Platillos"):
             try:
                 from pymongo import ReadPreference
                 resultado = ejecutar_top_platillos(db, año=año, mes=mes,
@@ -861,11 +862,11 @@ elif seccion.startswith("📊"):
                 else:
                     st.info(f"Sin órdenes entregadas en {año}-{mes:02d}.")
             except Exception as e:
-                st.error(f"❌ {e}")
+                st.error(f"{e}")
 
     with tab3:
         st.subheader("Ingresos Mensuales por Restaurante")
-        if st.button("▶️ Ejecutar Pipeline Ingresos"):
+        if st.button("Ejecutar Pipeline Ingresos"):
             try:
                 from pymongo import ReadPreference
                 resultado = ejecutar_ingresos_mensuales(db, ReadPreference.SECONDARY_PREFERRED)
@@ -875,11 +876,11 @@ elif seccion.startswith("📊"):
                 else:
                     st.info("Sin órdenes entregadas.")
             except Exception as e:
-                st.error(f"❌ {e}")
+                st.error(f"{e}")
 
     with tab4:
         st.subheader("Agregaciones Simples (Sección 5.4)")
-        if st.button("▶️ Ejecutar Agregaciones Simples"):
+        if st.button("Ejecutar Agregaciones Simples"):
             try:
                 simples = agregaciones_simples(db)
                 col1, col2, col3 = st.columns(3)
@@ -894,16 +895,16 @@ elif seccion.startswith("📊"):
                 st.markdown("**Categorías distintas:**")
                 st.write(simples["categorias_unicas"])
             except Exception as e:
-                st.error(f"❌ {e}")
+                st.error(f"{e}")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
 # 🔍 ÍNDICES & explain()
 # ═════════════════════════════════════════════════════════════════════════════
 elif seccion.startswith("🔍"):
-    st.title("🔍 Índices & explain() Comparativo")
+    st.title("Índices & explain() Comparativo")
 
-    tab1, tab2 = st.tabs(["📋 Índices Creados", "📊 explain() COLLSCAN vs IXSCAN"])
+    tab1, tab2 = st.tabs(["Índices Creados", "explain() COLLSCAN vs IXSCAN"])
 
     with tab1:
         st.subheader("Los 9 Índices del Sistema")
@@ -944,26 +945,26 @@ elif seccion.startswith("🔍"):
         **Consulta base:** `db.ordenes.find({'usuario_id': ObjectId(...)}).sort('fecha_creacion', -1)`
         """)
 
-        if st.button("▶️ Ejecutar explain() Comparativo"):
+        if st.button("Ejecutar explain() Comparativo"):
             with st.spinner("Ejecutando explain()..."):
                 try:
                     resultado = validar_indices(db)
 
                     col1, col2 = st.columns(2)
                     with col1:
-                        st.markdown("### ❌ Sin Índice (COLLSCAN)")
+                        st.markdown("### Sin Índice (COLLSCAN)")
                         m_antes = resultado["metricas_antes"]
                         st.metric("Stage",              m_antes.get("stage", "N/A"))
                         st.metric("Docs examinados",    str(m_antes.get("totalDocsExamined", "N/A")))
                         st.metric("Tiempo (ms)",        str(m_antes.get("executionTimeMillis", "N/A")))
                     with col2:
-                        st.markdown("### ✅ Con Índice (IXSCAN)")
+                        st.markdown("### Con Índice (IXSCAN)")
                         m_desp = resultado["metricas_despues"]
                         st.metric("Stage",              m_desp.get("stage", "N/A"))
                         st.metric("Docs examinados",    str(m_desp.get("totalDocsExamined", "N/A")))
                         st.metric("Tiempo (ms)",        str(m_desp.get("executionTimeMillis", "N/A")))
 
-                    st.success(" Archivos guardados: explain_before.json y explain_after.json")
+                    st.success("Archivos guardados: explain_before.json y explain_after.json")
 
                     # Mostrar explain raw
                     with st.expander("Ver explain() ANTES (raw)"):
@@ -973,14 +974,14 @@ elif seccion.startswith("🔍"):
                         st.json(_serialize_explain(resultado["explain_after"]))
 
                 except Exception as e:
-                    st.error(f"❌ {e}")
+                    st.error(f"{e}")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
 # 🧩 OPERADORES DE ARRAY
 # ═════════════════════════════════════════════════════════════════════════════
 elif seccion.startswith("🧩"):
-    st.title("🧩 Operadores de Array")
+    st.title("Operadores de Array")
     st.markdown("""
     Pruebas reales de los operadores de array definidos en **Sección 8.1**.
     Puedes ejecutarlos todos juntos o probar uno por uno para ver el impacto exacto en la base de datos.
@@ -989,20 +990,20 @@ elif seccion.startswith("🧩"):
     col1, col2 = st.columns([1, 1])
 
     with col1:
-        st.subheader("🚀 Ejecución Rápida")
-        if st.button("▶️ Ejecutar Demo Completa", use_container_width=True):
+        st.subheader("Ejecución Rápida")
+        if st.button("Ejecutar Demo Completa", use_container_width=True):
             with st.spinner("Ejecutando operadores..."):
                 try:
                     resultados = demo_operadores_array(db)
-                    st.success(" Todos los operadores ejecutados correctamente.")
+                    st.success("Todos los operadores ejecutados correctamente.")
                     for operador, info in resultados.items():
                         with st.expander(f"Resultado {operador}"):
                             st.json(info)
                 except Exception as e:
-                    st.error(f"❌ {e}")
+                    st.error(f"{e}")
 
     with col2:
-        st.subheader("🧪 Pruebas Individuales")
+        st.subheader("Pruebas Individuales")
         op_seleccionado = st.selectbox("Selecciona un operador para probar:", [
             "$push & $pop (Historial de Usuario)",
             "$addToSet & $pull (Tags de Reseña)",
@@ -1011,7 +1012,7 @@ elif seccion.startswith("🧩"):
             "$inc (Ventas Totales)"
         ])
 
-        if st.button("🔬 Probar Seleccionado", use_container_width=True):
+        if st.button("Probar Seleccionado", use_container_width=True):
             with st.spinner(f"Probando {op_seleccionado}..."):
                 try:
                     resultado = {}
@@ -1026,13 +1027,13 @@ elif seccion.startswith("🧩"):
                     elif op_seleccionado.startswith("$inc"):
                         resultado = demo_inc(db)
 
-                    st.success(f"✅ Prueba de {op_seleccionado.split(' ')[0]} completada.")
+                    st.success(f"Prueba de {op_seleccionado.split(' ')[0]} completada.")
                     st.json(resultado)
                 except Exception as e:
-                    st.error(f"❌ Error en la prueba: {e}")
+                    st.error(f"Error en la prueba: {e}")
 
     st.divider()
-    st.markdown("### 📚 Detalle de Operadores")
+    st.markdown("### Detalle de Operadores")
     st.markdown("""
     | Operador | Caso de uso en Parametric Grill Hub | Descripción |
     |----------|-------------------------------------|-------------|
@@ -1050,16 +1051,16 @@ elif seccion.startswith("🧩"):
 # 🔎 BÚSQUEDA & GEO
 # ═════════════════════════════════════════════════════════════════════════════
 elif seccion.startswith("🔎"):
-    st.title("🔎 Búsqueda de Texto & Búsqueda Geoespacial")
+    st.title("Búsqueda de Texto & Búsqueda Geoespacial")
 
-    tab1, tab2 = st.tabs(["📝 Búsqueda de Texto", "🗺️ Restaurantes Cercanos ($near)"])
+    tab1, tab2 = st.tabs(["Búsqueda de Texto", "Restaurantes Cercanos ($near)"])
 
     with tab1:
         st.subheader("Búsqueda Full-Text en Menú ($text + $meta textScore)")
         st.markdown("Índice: `idx_menu_texto` — nombre (weight:10) y descripcion (weight:5)")
         termino = st.text_input("Buscar platillo:", "pollo")
         limite  = st.slider("Resultados:", 1, 20, 10)
-        if st.button("🔍 Buscar") and termino:
+        if st.button("Buscar") and termino:
             try:
                 resultados = busqueda_texto_menu(db, termino, limite)
                 if resultados:
@@ -1070,7 +1071,7 @@ elif seccion.startswith("🔎"):
                 else:
                     st.info(f"Sin resultados para '{termino}'.")
             except Exception as e:
-                st.error(f"❌ {e}")
+                st.error(f"{e}")
 
     with tab2:
         st.subheader("Restaurantes Cercanos ($near + 2dsphere)")
@@ -1083,7 +1084,7 @@ elif seccion.startswith("🔎"):
         with col3:
             radio  = st.slider("Radio (metros):", 100, 10000, 2000, 100)
 
-        if st.button("📍 Buscar Cercanos"):
+        if st.button("Buscar Cercanos"):
             try:
                 cercanos = restaurantes_cercanos(db, lng, lat, radio)
                 if cercanos:
@@ -1092,17 +1093,17 @@ elif seccion.startswith("🔎"):
                              "Calificación": r.get("calificacion_promedio", 0)}
                             for r in cercanos]
                     st.dataframe(pd.DataFrame(rows), use_container_width=True)
-                    st.success(f"✅ {len(cercanos)} restaurante(s) dentro de {radio}m")
+                    st.success(f"{len(cercanos)} restaurante(s) dentro de {radio}m")
                 else:
                     st.info(f"Sin restaurantes dentro de {radio}m.")
             except Exception as e:
-                st.error(f"❌ {e}")
+                st.error(f"{e}")
                 
 # ═════════════════════════════════════════════════════════════════════════════
 # 📈 MONGO ATLAS CHARTS (EMBEDDED)
 # ═════════════════════════════════════════════════════════════════════════════
 elif seccion.startswith("📈"):
-    st.title("📈 MongoDB Atlas Charts")
+    st.title("MongoDB Atlas Charts")
     st.markdown("Visualizaciones de negocio embebidas directamente desde **Atlas Charts**.")
 
     # REEMPLAZA ESTOS LINKS CON TUS PROPIOS LINKS DE ATLAS
