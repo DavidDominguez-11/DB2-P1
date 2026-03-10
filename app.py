@@ -25,6 +25,7 @@ from pymongo.errors import PyMongoError
 from config import get_db
 from scripts.setup_collections import setup
 from scripts.seed import seed_all
+from scripts.seed_images import seed_images
 from scripts.validate_indexes import validar_indices
 from crud.create import crear_restaurante, crear_usuario, crear_menu_item, crear_resena
 from crud.read import (historial_usuario_paginado, detalle_orden_completo,
@@ -280,6 +281,21 @@ elif seccion.startswith("⚙️"):
                     seed_all(db)
                     st.success("Seeding completado.")
                     st.cache_resource.clear()
+                except Exception as e:
+                    st.error(f"Error: {e}")
+
+        st.divider()
+        st.subheader("Multimedia (GridFS)")
+        st.markdown("""
+        - Generar 100 imágenes con Pillow  
+        - Subir a GridFS  
+        - Vincular a Restaurantes y Menú
+        """)
+        if st.button("Seed de Imágenes (GridFS)", use_container_width=True):
+            with st.spinner("Generando y subiendo imágenes..."):
+                try:
+                    seed_images()
+                    st.success("Seeding de imágenes completado.")
                 except Exception as e:
                     st.error(f"Error: {e}")
 
