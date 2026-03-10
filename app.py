@@ -30,7 +30,8 @@ from crud.create import crear_restaurante, crear_usuario, crear_menu_item, crear
 from crud.read import (historial_usuario_paginado, detalle_orden_completo,
                        restaurantes_cercanos, busqueda_texto_menu,
                        consulta_ordenes_filtradas,
-                       listar_restaurantes, listar_menu_restaurante, listar_usuarios)
+                       listar_restaurantes, listar_menu_restaurante, listar_usuarios,
+                       reporte_resenas_enriquecido, ranking_popularidad_menu)
 from crud.update import (cambiar_estado_orden, actualizar_precios_restaurante,
                           agregar_tag_resena, quitar_item_orden, demo_operadores_array,
                           demo_push_pop, demo_addtoset_pull, demo_elemmatch, demo_size, demo_inc)
@@ -139,6 +140,7 @@ with st.sidebar:
         "📋  Órdenes",
         "⭐  Reseñas",
         "📊  Aggregation Pipelines",
+        "📑  Multi-Colección",
         "🔍  Índices & explain()",
         "🧩  Operadores de Array",
         "🔎  Búsqueda & Geo",
@@ -906,6 +908,85 @@ elif seccion.startswith("📊"):
                 st.metric("Órdenes Entregadas ($count)", simples["ordenes_entregadas"])
                 st.markdown("**Categorías distintas:**")
                 st.write(simples["categorias_unicas"])
+            except Exception as e:
+                st.error(f"{e}")
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# 📑 CONSULTAS AVANZADAS (LOOKUP+)
+# ═════════════════════════════════════════════════════════════════════════════
+elif seccion.startswith("📑"):
+    st.title("Consultas Avanzadas (Lookup+)")
+    st.markdown("""
+    Estas consultas demuestran el uso de **filtros**, **lookups correlacionados**, 
+    **proyecciones calculadas**, **ordenamiento** y **paginación**.
+    """)
+
+    tab1, tab2 = st.tabs([
+        "Reporte de Reseñas Enriquecido",
+        "Ranking de Popularidad de Menú"
+    ])
+
+    with tab1:
+        st.subheader("Reporte: Reseñas → Usuarios → Restaurantes → Órdenes")
+        st.markdown("""
+        Este reporte une 4 colecciones para mostrar quién escribió la reseña, 
+        de qué restaurante y cuál fue el monto de su última orden entregada allí.
+        """)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            min_cal = st.slider("Calificación mínima:", 1, 5, 3, key="cal_adv")
+        with col2:
+            tag_adv = st.text_input("Filtrar por tag (opcional):", "", key="tag_adv")
+
+        c1, c2 = st.columns(2)
+        with c1:
+            pag_adv = st.number_input("Página:", min_value=1, value=1, key="pag_adv_1")
+        with c2:
+            limit_adv = st.selectbox("Por página:", [5, 10, 20, 50], index=1, key="lim_adv_1")
+
+        if st.button("Generar Reporte de Reseñas"):
+            try:
+                res = reporte_resenas_enriquecido(db, min_calificacion=min_cal, 
+                                                 tag=tag_adv if tag_adv else None,
+                                                 pagina=pag_adv, por_pagina=limit_adv)
+                if res:
+                    st.dataframe(pd.DataFrame(res), use_container_width=True)
+                else:
+                    st.info("No se encontraron resultados con esos filtros.")
+            except Exception as e:
+                st.error(f"{e}")
+
+    with tab2:
+        st.subheader("Ranking: Popularidad de Menú")
+        st.markdown("""
+        Cruza los platillos con la colección de órdenes para contar en cuántas 
+        órdenes *entregadas* aparece cada uno actualmente.
+        """)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            cat_adv = st.text_input("Categoría (opcional):", "", key="cat_adv")
+        with col2:
+            precio_range = st.slider("Rango de precio:", 0, 500, (0, 500), key="price_adv")
+
+        c1, c2 = st.columns(2)
+        with c1:
+            pag_adv2 = st.number_input("Página:", min_value=1, value=1, key="pag_adv_2")
+        with c2:
+            limit_adv2 = st.selectbox("Por página:", [5, 10, 20, 50], index=1, key="lim_adv_2")
+
+        if st.button("Generar Ranking de Popularidad"):
+            try:
+                res = ranking_popularidad_menu(db, categoria=cat_adv if cat_adv else None,
+                                              min_precio=float(precio_range[0]),
+                                              max_precio=float(precio_range[1]),
+                                              pagina=pag_adv2, por_pagina=limit_adv2)
+                if res:
+                    st.dataframe(pd.DataFrame(res), use_container_width=True)
+                else:
+                    st.info("No se encontraron platillos con esos criterios.")
             except Exception as e:
                 st.error(f"{e}")
 
