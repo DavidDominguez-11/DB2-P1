@@ -173,27 +173,27 @@ if db is None:
 # 🏠 DASHBOARD
 # ═════════════════════════════════════════════════════════════════════════════
 if seccion.startswith("🏠"):
-    st.title("🍔 Parametric Grill Hub")
+    st.title("Parametric Grill Hub")
     st.markdown("**Sistema de Gestión de Pedidos y Reseñas — MongoDB Atlas**")
     st.divider()
 
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
-        st.metric("📦 Órdenes",       f"{db.ordenes.estimated_document_count():,}")
+        st.metric("Órdenes",       f"{db.ordenes.estimated_document_count():,}")
     with col2:
-        st.metric("🍽️ Restaurantes",  db.restaurantes.estimated_document_count())
+        st.metric("Restaurantes",  db.restaurantes.estimated_document_count())
     with col3:
-        st.metric("👤 Usuarios",       db.usuarios.estimated_document_count())
+        st.metric("Usuarios",       db.usuarios.estimated_document_count())
     with col4:
-        st.metric("🍕 Menu Items",     db.menu_items.estimated_document_count())
+        st.metric("Menu Items",     db.menu_items.estimated_document_count())
     with col5:
-        st.metric("⭐ Reseñas",        db.resenas.estimated_document_count())
+        st.metric("Reseñas",        db.resenas.estimated_document_count())
 
     st.divider()
 
     col_a, col_b = st.columns(2)
     with col_a:
-        st.subheader("📊 Órdenes por Estado")
+        st.subheader("Órdenes por Estado")
         pipeline_estados = [
             {"$group": {"_id": "$estado", "count": {"$sum": 1}}},
             {"$sort":  {"count": -1}}
@@ -204,7 +204,7 @@ if seccion.startswith("🏠"):
             st.bar_chart(df_estados.set_index("Estado"))
 
     with col_b:
-        st.subheader("🏆 Top 5 Restaurantes (Calificación)")
+        st.subheader("Top 5 Restaurantes (Calificación)")
         try:
             top = list(db.resenas.aggregate([
                 {"$group": {"_id": "$restaurante_id", "avg": {"$avg": "$calificacion"}, "n": {"$sum": 1}}},
@@ -218,7 +218,7 @@ if seccion.startswith("🏠"):
         except Exception as e:
             st.info(f"Agrega reseñas para ver el top. ({e})")
 
-    st.subheader("📈 Ingresos Mensuales (últimos 6 meses)")
+    st.subheader("Ingresos Mensuales (últimos 6 meses)")
     try:
         ing = list(db.ordenes.aggregate([
             {"$match": {"estado": "entregado"}},
@@ -243,28 +243,28 @@ if seccion.startswith("🏠"):
 # ⚙️ SETUP & SEEDING
 # ═════════════════════════════════════════════════════════════════════════════
 elif seccion.startswith("⚙️"):
-    st.title("⚙️ Setup & Seeding")
+    st.title("Setup & Seeding")
     st.markdown("Inicializa colecciones, índices y datos de prueba.")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("🏗️ Configuración Inicial")
+        st.subheader("Configuración Inicial")
         st.markdown("""
         **Paso 1** — Crear colecciones con JSON Schema  
         **Paso 2** — Crear los 9 índices  
         **Paso 3** — Activar `notablescan=1`
         """)
-        if st.button("▶️ Ejecutar Setup Completo", use_container_width=True):
+        if st.button("Ejecutar Setup Completo", use_container_width=True):
             with st.spinner("Configurando colecciones e índices..."):
                 try:
                     setup(db)
-                    st.success("✅ Setup completado.")
+                    st.success("Setup completado.")
                 except Exception as e:
-                    st.error(f"❌ Error: {e}")
+                    st.error(f"Error: {e}")
 
     with col2:
-        st.subheader("🌱 Seeding de Datos")
+        st.subheader("Seeding de Datos")
         st.markdown("""
         - 10 restaurantes  
         - 20 usuarios  
@@ -272,17 +272,17 @@ elif seccion.startswith("⚙️"):
         - **50,000 órdenes** (BulkWrite)  
         - 200 reseñas
         """)
-        if st.button("▶️ Ejecutar Seed Completo", use_container_width=True):
+        if st.button("Ejecutar Seed Completo", use_container_width=True):
             with st.spinner("Generando 50,000 órdenes... (puede tomar varios minutos)"):
                 try:
                     seed_all(db)
-                    st.success("✅ Seeding completado.")
+                    st.success("Seeding completado.")
                     st.cache_resource.clear()
                 except Exception as e:
-                    st.error(f"❌ Error: {e}")
+                    st.error(f"Error: {e}")
 
     st.divider()
-    st.subheader("📋 Estado de Colecciones")
+    st.subheader("Estado de Colecciones")
     cols_info = []
     for col_name in ["restaurantes", "usuarios", "menu_items", "ordenes", "resenas"]:
         try:
@@ -303,13 +303,13 @@ elif seccion.startswith("⚙️"):
 # 🧬 ESTRUCTURA EMBEBIDA (ANATOMÍA)
 # ═════════════════════════════════════════════════════════════════════════════
 elif seccion.startswith("🧬"):
-    st.title("🧬 Anatomía de Documentos Embebidos")
+    st.title("Anatomía de Documentos Embebidos")
     st.markdown("""
     En este proyecto, seguimos el principio de **Denormalización Controlada**. 
     Usamos **objetos embebidos (⬛)** para datos que pertenecen lógicamente a una entidad y **referencias (→)** para relaciones entre entidades independientes.
     """)
 
-    tab1, tab2, tab3 = st.tabs(["🍽️ Restaurantes", "📋 Órdenes", "👤 Usuarios"])
+    tab1, tab2, tab3 = st.tabs(["Restaurantes", "Órdenes", "Usuarios"])
 
     with tab1:
         st.subheader("Colección: `restaurantes`")
@@ -335,7 +335,7 @@ Restaurante (Documento)
             """, language="text")
         
         st.divider()
-        st.markdown("🔍 **Ejemplo Real de `horario` y `ubicacion`:**")
+        st.markdown("**Ejemplo Real de `horario` y `ubicacion`:**")
         res = db.restaurantes.find_one()
         if res:
             col_a, col_b = st.columns(2)
@@ -370,7 +370,7 @@ Orden (Documento)
             """, language="text")
 
         st.divider()
-        st.markdown("🔍 **Inspección de Snapshot en Orden:**")
+        st.markdown("**Inspección de Snapshot en Orden:**")
         ord_doc = db.ordenes.find_one()
         if ord_doc:
             st.json({"items_embebidos": ord_doc.get("items", []), "direccion": ord_doc.get("direccion_entrega", {})})
@@ -392,8 +392,8 @@ Orden (Documento)
 # 🍽️ RESTAURANTES
 # ═════════════════════════════════════════════════════════════════════════════
 elif seccion.startswith("🍽️"):
-    st.title("🍽️ Gestión de Restaurantes")
-    tab1, tab2, tab3, tab4 = st.tabs(["📋 Listar", "➕ Crear", "✏️ Editar", "🗑️ Soft Delete"])
+    st.title("Gestión de Restaurantes")
+    tab1, tab2, tab3, tab4 = st.tabs(["Listar", "Crear", "Editar", "Soft Delete"])
 
     with tab1:
         st.subheader("Restaurantes Registrados")
@@ -407,7 +407,7 @@ elif seccion.startswith("🍽️"):
                     "Nombre":        r.get("nombre", ""),
                     "Categorías":    ", ".join(r.get("categorias", [])),
                     "Calificación":  r.get("calificacion_promedio", 0),
-                    "Activo":        "✅" if r.get("activo") else "❌",
+                    "Activo":        "Activo" if r.get("activo") else "Inactivo",
                     "Ciudad":        r.get("ubicacion", {}).get("ciudad", ""),
                 })
             st.dataframe(pd.DataFrame(rows), use_container_width=True)
@@ -490,26 +490,26 @@ elif seccion.startswith("🍽️"):
             with col_a:
                 if st.button("🔒 Desactivar (Soft Delete)", use_container_width=True):
                     if soft_delete_restaurante(db, opts[sel]):
-                        st.success("✅ Restaurante desactivado.")
+                        st.success(" Restaurante desactivado.")
             with col_b:
                 from crud.delete import restaurar_restaurante
                 if st.button("🔓 Reactivar", use_container_width=True):
                     if restaurar_restaurante(db, opts[sel]):
-                        st.success("✅ Restaurante reactivado.")
+                        st.success(" Restaurante reactivado.")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
 # 👤 USUARIOS
 # ═════════════════════════════════════════════════════════════════════════════
 elif seccion.startswith("👤"):
-    st.title("👤 Gestión de Usuarios")
-    tab1, tab2, tab3 = st.tabs(["📋 Listar", "➕ Crear", "📜 Historial de Órdenes"])
+    st.title("Gestión de Usuarios")
+    tab1, tab2, tab3 = st.tabs(["Listar", "Crear", "Historial de Órdenes"])
 
     with tab1:
         usuarios = listar_usuarios(db, limite=50)
         if usuarios:
             rows = [{"ID": str(u["_id"]), "Nombre": f"{u.get('nombre','')} {u.get('apellido','')}",
-                     "Email": u.get("email",""), "Activo": "✅" if u.get("activo") else "❌",
+                     "Email": u.get("email",""), "Activo": "Activo" if u.get("activo") else "Inactivo",
                      "Órdenes": len(u.get("historial_pedidos", []))}
                     for u in usuarios]
             st.dataframe(pd.DataFrame(rows), use_container_width=True)
@@ -571,8 +571,8 @@ elif seccion.startswith("👤"):
 # 📋 ÓRDENES
 # ═════════════════════════════════════════════════════════════════════════════
 elif seccion.startswith("📋"):
-    st.title("📋 Gestión de Órdenes")
-    tab1, tab2, tab3, tab4 = st.tabs(["📋 Listar/Filtrar", "➕ Nueva Orden (Transacción)", "🔍 Detalle Completo", "❌ Cancelar"])
+    st.title("Gestión de Órdenes")
+    tab1, tab2, tab3, tab4 = st.tabs(["Listar/Filtrar", "Nueva Orden (Transacción)", "Detalle Completo", "Cancelar"])
 
     with tab1:
         st.subheader("Órdenes con Filtros y Proyecciones")
@@ -698,7 +698,7 @@ elif seccion.startswith("📋"):
         if st.button("❌ Cancelar Orden (Transacción)") and orden_id_str:
             try:
                 cancelar_orden(db, ObjectId(orden_id_str))
-                st.success("✅ Orden cancelada y ventas_total revertidas.")
+                st.success(" Orden cancelada y ventas_total revertidas.")
             except Exception as e:
                 st.error(f"❌ {e}")
 
@@ -707,8 +707,8 @@ elif seccion.startswith("📋"):
 # ⭐ RESEÑAS
 # ═════════════════════════════════════════════════════════════════════════════
 elif seccion.startswith("⭐"):
-    st.title("⭐ Gestión de Reseñas")
-    tab1, tab2, tab3, tab4 = st.tabs(["📋 Listar", "➕ Crear", "🏷️ Agregar Tag", "🗑️ Eliminar"])
+    st.title("Gestión de Reseñas")
+    tab1, tab2, tab3, tab4 = st.tabs(["Listar", "Crear", "Agregar Tag", "Eliminar"])
 
     with tab1:
         col1, col2 = st.columns([1, 1])
@@ -963,7 +963,7 @@ elif seccion.startswith("🔍"):
                         st.metric("Docs examinados",    str(m_desp.get("totalDocsExamined", "N/A")))
                         st.metric("Tiempo (ms)",        str(m_desp.get("executionTimeMillis", "N/A")))
 
-                    st.success("✅ Archivos guardados: explain_before.json y explain_after.json")
+                    st.success(" Archivos guardados: explain_before.json y explain_after.json")
 
                     # Mostrar explain raw
                     with st.expander("Ver explain() ANTES (raw)"):
@@ -994,7 +994,7 @@ elif seccion.startswith("🧩"):
             with st.spinner("Ejecutando operadores..."):
                 try:
                     resultados = demo_operadores_array(db)
-                    st.success("✅ Todos los operadores ejecutados correctamente.")
+                    st.success(" Todos los operadores ejecutados correctamente.")
                     for operador, info in resultados.items():
                         with st.expander(f"Resultado {operador}"):
                             st.json(info)
