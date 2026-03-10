@@ -35,7 +35,7 @@ from crud.read import (historial_usuario_paginado, detalle_orden_completo,
                        reporte_resenas_enriquecido, ranking_popularidad_menu)
 from crud.update import (cambiar_estado_orden, actualizar_precios_restaurante,
                           agregar_tag_resena, quitar_item_orden, demo_operadores_array,
-                          demo_push_pop, demo_addtoset_pull, demo_elemmatch, demo_size, demo_inc)
+                          demo_push, demo_pop, demo_addtoset, demo_pull, demo_elemmatch, demo_size, demo_inc)
 from crud.delete import eliminar_menu_item, eliminar_resenas_usuario, soft_delete_restaurante, eliminar_resena
 from transactions.orders import crear_orden, cancelar_orden
 from aggregations.pipelines import (ejecutar_top_restaurantes, ejecutar_top_platillos,
@@ -1158,8 +1158,10 @@ elif seccion.startswith("🧩"):
     with col2:
         st.subheader("Pruebas Individuales")
         op_seleccionado = st.selectbox("Selecciona un operador para probar:", [
-            "$push & $pop (Historial de Usuario)",
-            "$addToSet & $pull (Tags de Reseña)",
+            "$push (Historial de Usuario)",
+            "$pop (Historial de Usuario)",
+            "$addToSet (Tags de Reseña)",
+            "$pull (Tags de Reseña)",
             "$elemMatch (Filtro de Items en Órdenes)",
             "$size (Filtro por Cantidad de Items)",
             "$inc (Ventas Totales)"
@@ -1170,9 +1172,13 @@ elif seccion.startswith("🧩"):
                 try:
                     resultado = {}
                     if op_seleccionado.startswith("$push"):
-                        resultado = demo_push_pop(db)
+                        resultado = demo_push(db)
+                    elif op_seleccionado.startswith("$pop"):
+                        resultado = demo_pop(db)
                     elif op_seleccionado.startswith("$addToSet"):
-                        resultado = demo_addtoset_pull(db)
+                        resultado = demo_addtoset(db)
+                    elif op_seleccionado.startswith("$pull"):
+                        resultado = demo_pull(db)
                     elif op_seleccionado.startswith("$elemMatch"):
                         resultado = demo_elemmatch(db)
                     elif op_seleccionado.startswith("$size"):

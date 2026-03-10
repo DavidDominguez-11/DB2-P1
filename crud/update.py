@@ -147,8 +147,8 @@ def revertir_ventas_total(db, items_list: list) -> int:
 # 6. Demostración completa de operadores de array (10 pts)
 # ──────────────────────────────────────────────────────────────────────────────
 
-def demo_push_pop(db):
-    """Demostración de $push y $pop."""
+def demo_push(db):
+    """Demostración de $push."""
     resultados = {}
     usuario = db.usuarios.find_one({"activo": True})
     if usuario:
@@ -163,7 +163,13 @@ def demo_push_pop(db):
             "modified_count": res.modified_count,
             "valor_agregado": str(orden_ficticia)
         }
+    return resultados
 
+def demo_pop(db):
+    """Demostración de $pop."""
+    resultados = {}
+    usuario = db.usuarios.find_one({"activo": True})
+    if usuario:
         res_pop = db.usuarios.update_one(
             {"_id": usuario["_id"]},
             {"$pop": {"historial_pedidos": 1}}   # 1 = eliminar último
@@ -175,8 +181,8 @@ def demo_push_pop(db):
         }
     return resultados
 
-def demo_addtoset_pull(db):
-    """Demostración de $addToSet y $pull."""
+def demo_addtoset(db):
+    """Demostración de $addToSet."""
     resultados = {}
     resena = db.resenas.find_one()
     if resena:
@@ -191,7 +197,14 @@ def demo_addtoset_pull(db):
             "modified_count": res.modified_count,
             "tag": tag_demo
         }
+    return resultados
 
+def demo_pull(db):
+    """Demostración de $pull."""
+    resultados = {}
+    resena = db.resenas.find_one()
+    if resena:
+        tag_demo = "demo_tag"
         res_pull = db.resenas.update_one(
             {"_id": resena["_id"]},
             {"$pull": {"tags": tag_demo}}
@@ -257,8 +270,10 @@ def demo_operadores_array(db):
     $push, $pull, $addToSet, $pop, $elemMatch, $size, $inc
     """
     resultados = {}
-    resultados.update(demo_push_pop(db))
-    resultados.update(demo_addtoset_pull(db))
+    resultados.update(demo_push(db))
+    resultados.update(demo_pop(db))
+    resultados.update(demo_addtoset(db))
+    resultados.update(demo_pull(db))
     resultados.update(demo_elemmatch(db))
     resultados.update(demo_size(db))
     resultados.update(demo_inc(db))
