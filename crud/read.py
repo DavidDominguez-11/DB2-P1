@@ -270,8 +270,16 @@ def obtener_usuario(db, usuario_id: ObjectId) -> dict | None:
 def obtener_orden(db, orden_id: ObjectId) -> dict | None:
     return db.ordenes.find_one({"_id": orden_id})
 
-def listar_restaurantes(db, solo_activos: bool = True, limite: int = 50) -> list:
-    filtro = {"activo": True} if solo_activos else {}
+def listar_restaurantes(db, filtro_estado: str = "activos", limite: int = 50) -> list:
+    """
+    Lista restaurantes con filtro de estado: 'activos', 'inactivos' o 'todos'.
+    """
+    if filtro_estado == "activos":
+        filtro = {"activo": True}
+    elif filtro_estado == "inactivos":
+        filtro = {"activo": False}
+    else:
+        filtro = {}
     return list(db.restaurantes.find(filtro).limit(limite))
 
 def listar_menu_restaurante(db, restaurante_id: ObjectId,

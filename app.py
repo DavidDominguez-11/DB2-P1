@@ -397,8 +397,20 @@ elif seccion.startswith("🍽️"):
 
     with tab1:
         st.subheader("Restaurantes Registrados")
-        solo_activos = st.checkbox("Solo activos", value=True)
-        restaurantes = listar_restaurantes(db, solo_activos=solo_activos, limite=50)
+        filtro_opcion = st.radio(
+            "Filtrar por estado:",
+            ["Solo Activos", "Solo Inactivos", "Ver Todos"],
+            horizontal=True
+        )
+
+        # Mapear opción del UI al valor que espera la función
+        estado_map = {
+            "Solo Activos":   "activos",
+            "Solo Inactivos": "inactivos",
+            "Ver Todos":      "todos"
+        }
+
+        restaurantes = listar_restaurantes(db, filtro_estado=estado_map[filtro_opcion], limite=50)
         if restaurantes:
             rows = []
             for r in restaurantes:
@@ -481,7 +493,7 @@ elif seccion.startswith("🍽️"):
 
     with tab4:
         st.subheader("Soft Delete de Restaurante")
-        restaurantes = listar_restaurantes(db, solo_activos=False)
+        restaurantes = listar_restaurantes(db, filtro_estado="todos")
         if restaurantes:
             opts = {f"{r['nombre']} ({'activo' if r.get('activo') else 'inactivo'})": r["_id"]
                     for r in restaurantes}
