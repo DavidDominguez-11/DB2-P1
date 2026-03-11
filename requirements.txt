@@ -1,0 +1,6 @@
+pymongo
+streamlit
+python-dotenv
+Faker
+Pillow
+pandas
